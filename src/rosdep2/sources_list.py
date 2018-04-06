@@ -47,6 +47,7 @@ except ImportError:
 
 from .core import InvalidData, DownloadFailure, CachePermissionError
 from .gbpdistro_support import get_gbprepo_as_rosdep_data, download_gbpdistro_as_rosdep_data
+from .rosdistro_support import download_rosdistro_as_rosdep_data
 
 try:
     import urlparse
@@ -122,9 +123,12 @@ def get_sources_cache_dir():
 # Default rosdep.yaml format.  For now this is the only valid type and
 # is specified for future compatibility.
 TYPE_YAML = 'yaml'
+# Support for using a rosdistro distribution.yaml to resolve keys from another rosdistro.
+TYPE_ROSDISTRO = 'rosdistro'
 # git-buildpackage repo list
 TYPE_GBPDISTRO = 'gbpdistro'
-VALID_TYPES = [TYPE_YAML, TYPE_GBPDISTRO]
+
+VALID_TYPES = [TYPE_YAML, TYPE_ROSDISTRO, TYPE_GBPDISTRO]
 
 
 class DataSource(object):
@@ -474,6 +478,10 @@ def update_sources_list(sources_list_dir=None, sources_cache_dir=None,
                     sources.remove(source)
                     continue  # do not store this entry in the cache
                 rosdep_data = download_gbpdistro_as_rosdep_data(source.url)
+            elif source.type == TYPE_ROSDISTRO:
+                # Assume the first tag is the rosdistro name.
+                rosdistro_name = source.tags[0]
+                rosdep_data = download_rosdistro_as_rosdep_data(rosdistro_name, source.url)
             retval.append((source, write_cache_file(sources_cache_dir, source.url, rosdep_data)))
             if success_handler is not None:
                 success_handler(source)
