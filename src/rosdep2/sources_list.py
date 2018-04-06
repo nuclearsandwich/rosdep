@@ -482,6 +482,7 @@ def update_sources_list(sources_list_dir=None, sources_cache_dir=None,
                 # Assume the first tag is the rosdistro name.
                 rosdistro_name = source.tags[0]
                 rosdep_data = download_rosdistro_as_rosdep_data(rosdistro_name, source.url)
+                source.url = 'rosdistro+' + source.url
             retval.append((source, write_cache_file(sources_cache_dir, source.url, rosdep_data)))
             if success_handler is not None:
                 success_handler(source)
