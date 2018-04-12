@@ -479,8 +479,8 @@ def update_sources_list(sources_list_dir=None, sources_cache_dir=None,
                     continue  # do not store this entry in the cache
                 rosdep_data = download_gbpdistro_as_rosdep_data(source.url)
             elif source.type == TYPE_ROSDISTRO:
-                # Assume the first tag is the rosdistro name.
-                rosdistro_name = source.tags[0]
+                # Pop the first tag to use as the rosdistro name. This is not good.
+                rosdistro_name = source.tags.pop()
                 rosdep_data = download_rosdistro_as_rosdep_data(rosdistro_name, source.url)
                 source.url = 'rosdistro+' + source.url
             retval.append((source, write_cache_file(sources_cache_dir, source.url, rosdep_data)))
