@@ -47,7 +47,7 @@ except ImportError:
 
 from .core import InvalidData, DownloadFailure, CachePermissionError
 from .gbpdistro_support import get_gbprepo_as_rosdep_data, download_gbpdistro_as_rosdep_data
-from .rosdistro_support import download_rosdistro_as_rosdep_data
+from .rosdistro_support import get_rosdistro_as_rosdep_data
 
 try:
     import urlparse
@@ -59,6 +59,7 @@ try:
 except ImportError:
     import http.client as httplib  # py3k
 
+import rosdistro
 import rospkg
 import rospkg.distro
 
@@ -479,10 +480,16 @@ def update_sources_list(sources_list_dir=None, sources_cache_dir=None,
                     continue  # do not store this entry in the cache
                 rosdep_data = download_gbpdistro_as_rosdep_data(source.url)
             elif source.type == TYPE_ROSDISTRO:
-                # Pop the first tag to use as the rosdistro name. This is not good.
+                # The first tag is going to be used as the source to the
+                # rosdistro name.  We remove it from the tags list to ensure
+                # this explicitly requested source is available to any rosdep
+                # request on the system regardless of current rosdistro.
                 rosdistro_name = source.tags.pop()
-                rosdep_data = download_rosdistro_as_rosdep_data(rosdistro_name, source.url)
-                source.url = 'rosdistro+' + source.url
+                index = rosdistro.get_index(source.url)
+                # rewrite source url to distribution files key
+                source.url = _generate_key_from_urls(
+                    index.distributions[rosdistro_name]['distribution'])
+                rosdep_data = get_rosdistro_as_rosdep_data(index, rosdistro_name)
             retval.append((source, write_cache_file(sources_cache_dir, source.url, rosdep_data)))
             if success_handler is not None:
                 success_handler(source)

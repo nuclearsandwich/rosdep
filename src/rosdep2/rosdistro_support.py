@@ -5,20 +5,12 @@ except ImportError:
 import yaml
 
 
-from rosdistro import DistributionFile
+from rosdistro import get_distribution_file
 
 
-def download_rosdistro_as_rosdep_data(rosdistro_name, rosdistro_url):
+def get_rosdistro_as_rosdep_data(index, rosdistro_name):
     """Download a rosdistro distribution.yaml file and generate rosdep data."""
-    try:
-        response = urlopen(rosdistro_url)
-    except:
-        print('Unable to download rosdistro.')
-        raise
-    yaml_text = response.read()
-    response.close()
-
-    distribution = DistributionFile(rosdistro_name, yaml.load(yaml_text))
+    distribution = get_distribution_file(index, rosdistro_name)
     rosdep_data = {}
     for rospkg in distribution.release_packages.keys():
         packagename = 'ros-{name}-{pkg}'.format(name=rosdistro_name, pkg=rospkg.replace('_', '-'))
